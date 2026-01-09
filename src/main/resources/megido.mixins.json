@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.y3ll0w11508.megiddo.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ExampleMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

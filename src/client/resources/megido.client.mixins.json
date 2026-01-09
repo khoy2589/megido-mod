@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "com.y3ll0w11508.megiddo.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ExampleClientMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
