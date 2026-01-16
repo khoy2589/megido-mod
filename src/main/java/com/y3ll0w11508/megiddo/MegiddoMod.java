@@ -1,6 +1,5 @@
 package com.y3ll0w11508.megiddo;
 
-import com.y3ll0w11508.megiddo.command.MegiddoCommand;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.slf4j.Logger;

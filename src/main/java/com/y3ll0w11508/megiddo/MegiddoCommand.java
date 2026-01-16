@@ -4,30 +4,26 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.y3ll0w11508.megiddo.system.TargetingSystem;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack; // Yarn: ServerCommandSource
+import net.minecraft.commands.Commands; // Yarn: CommandManager
+import net.minecraft.network.chat.Component; // Yarn: Text
+import net.minecraft.server.level.ServerPlayer; // Yarn: ServerPlayerEntity
 
-/**
- * Command สำหรับทดสอบระบบ Megiddo
- * ใช้: /megiddo test <minRange> <maxRange>
- */
 public class MegiddoCommand {
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-                CommandManager.literal("megiddo")
-                        .then(CommandManager.literal("test")
-                                .then(CommandManager.argument("minRange", DoubleArgumentType.doubleArg(0, 100))
-                                        .then(CommandManager.argument("maxRange", DoubleArgumentType.doubleArg(0, 100))
+                Commands.literal("megiddo")
+                        .then(Commands.literal("test")
+                                .then(Commands.argument("minRange", DoubleArgumentType.doubleArg(0, 100))
+                                        .then(Commands.argument("maxRange", DoubleArgumentType.doubleArg(0, 100))
                                                 .executes(MegiddoCommand::executeTest)
                                         )
                                 )
                         )
-                        .then(CommandManager.literal("fire")
-                                .then(CommandManager.argument("minRange", DoubleArgumentType.doubleArg(0, 100))
-                                        .then(CommandManager.argument("maxRange", DoubleArgumentType.doubleArg(0, 100))
+                        .then(Commands.literal("fire")
+                                .then(Commands.argument("minRange", DoubleArgumentType.doubleArg(0, 100))
+                                        .then(Commands.argument("maxRange", DoubleArgumentType.doubleArg(0, 100))
                                                 .executes(MegiddoCommand::executeFire)
                                         )
                                 )
@@ -35,14 +31,10 @@ public class MegiddoCommand {
         );
     }
 
-    /**
-     * Command: /megiddo test 5 60
-     * แสดงรายชื่อศัตรูที่หาเจอ (ไม่ยิง)
-     */
-    private static int executeTest(CommandContext<ServerCommandSource> context) {
-        ServerCommandSource source = context.getSource();
+    private static int executeTest(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack source = context.getSource();
 
-        if (source.getEntity() instanceof ServerPlayerEntity player) {
+        if (source.getEntity() instanceof ServerPlayer player) {
             double minRange = DoubleArgumentType.getDouble(context, "minRange");
             double maxRange = DoubleArgumentType.getDouble(context, "maxRange");
 
@@ -51,28 +43,25 @@ public class MegiddoCommand {
 
             return 1; // Success
         } else {
-            source.sendError(Text.literal("This command must be used by a player!"));
+            // sendError -> sendFailure
+            source.sendFailure(Component.literal("This command must be used by a player!"));
             return 0;
         }
     }
 
-    /**
-     * Command: /megiddo fire 5 60
-     * ยิงจริง (ทดสอบ Damage System)
-     */
-    private static int executeFire(CommandContext<ServerCommandSource> context) {
-        ServerCommandSource source = context.getSource();
+    private static int executeFire(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack source = context.getSource();
 
-        if (source.getEntity() instanceof ServerPlayerEntity player) {
+        if (source.getEntity() instanceof ServerPlayer player) {
             double minRange = DoubleArgumentType.getDouble(context, "minRange");
             double maxRange = DoubleArgumentType.getDouble(context, "maxRange");
 
-            // TODO: เรียกใช้ MegiddoSystem.fire() เมื่อทำเสร็จแล้ว
-            player.sendMessage(Text.literal("§c⚠ Fire system not implemented yet!"), false);
+            // sendMessage -> displayClientMessage
+            player.displayClientMessage(Component.literal("§c⚠ Fire system not implemented yet!"), false);
 
             return 1;
         } else {
-            source.sendError(Text.literal("This command must be used by a player!"));
+            source.sendFailure(Component.literal("This command must be used by a player!"));
             return 0;
         }
     }
