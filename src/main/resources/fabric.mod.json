@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "megido",
+	"id": "megiddo",
 	"version": "${version}",
-	"name": "Megido",
+	"name": "Megiddo",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
 		"Me!"
@@ -12,20 +12,20 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/megido/icon.png",
+	"icon": "assets/megiddo/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.y3ll0w11508.megiddo.Megido"
+			"com.y3ll0w11508.megiddo.Megiddo"
 		],
 		"client": [
-			"com.y3ll0w11508.megiddo.MegidoClient"
+			"com.y3ll0w11508.megiddo.MegiddoClient"
 		]
 	},
 	"mixins": [
-		"megido.mixins.json",
+		"megiddo.mixins.json",
 		{
-			"config": "megido.client.mixins.json",
+			"config": "megiddo.client.mixins.json",
 			"environment": "client"
 		}
 	],
