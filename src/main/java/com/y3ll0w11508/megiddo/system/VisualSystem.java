@@ -199,7 +199,7 @@ public class VisualSystem {
      * @param targetPos ตำแหน่งศัตรู
      * @param playerPos ตำแหน่งผู้เล่น (สำหรับคำนวณ Grid)
      */
-    public static void spawnFullMegiddoEffect(ServerLevel world, Vec3 targetPos, Vec3 playerPos) {
+    public static void spawnFullMegiddoEffect(ServerLevel world, Vec3 targetPos, Vec3 playerPos, net.minecraft.core.BlockPos blockingBlockPos) {
         Megiddo.LOGGER.debug("✨ Spawning full Megiddo effect");
 
         // 1. คำนวณจุดกำเนิดแสง (บนฟ้า)
@@ -236,6 +236,74 @@ public class VisualSystem {
 
         // 3.4 Impact Effect
         spawnImpactEffect(world, targetPos);
+
+    }
+
+    /**
+     * สร้าง Effect แบบหักเหหลายครั้ง (สำหรับเป้าหมายในร่ม)
+     *
+     * @param world Server World
+     * @param targetPos ตำแหน่งศัตรู
+     * @param playerPos ตำแหน่งผู้เล่น
+     * @param blockingBlockPos ตำแหน่ง Block ที่บัง
+     */
+    public static void spawnIndoorMegiddoEffect(ServerLevel world, Vec3 targetPos,
+                                                Vec3 playerPos, net.minecraft.core.BlockPos blockingBlockPos) {
+        Megiddo.LOGGER.debug("🏠 Spawning indoor Megiddo effect with multiple refractions");
+
+        // 1. จุดกำเนิดแสง (บนฟ้า)
+        double offsetX = (RANDOM.nextDouble() - 0.5) * 8.0;
+        double offsetZ = (RANDOM.nextDouble() - 0.5) * 8.0;
+        Vec3 sourcePos = new Vec3(
+                targetPos.x + offsetX,
+                targetPos.y + GRID_HEIGHT,
+                targetPos.z + offsetZ
+        );
+
+        // 2. จุดหักเหที่ 1: ใต้ block ที่บัง (0.5 blocks ใต้ block)
+        Vec3 refract1Pos = new Vec3(
+                blockingBlockPos.getX() + 0.5 + (RANDOM.nextDouble() - 0.5) * 0.3,
+                blockingBlockPos.getY() - 0.5,
+                blockingBlockPos.getZ() + 0.5 + (RANDOM.nextDouble() - 0.5) * 0.3
+        );
+
+        // 3. จุดหักเหที่ 2: เหนือศัตรู (3-5 blocks)
+        double refract2Height = MIN_REFRACT_HEIGHT +
+                RANDOM.nextDouble() * (MAX_REFRACT_HEIGHT - MIN_REFRACT_HEIGHT);
+        Vec3 refract2Pos = new Vec3(
+                targetPos.x + (RANDOM.nextDouble() - 0.5) * 0.5,
+                targetPos.y + refract2Height,
+                targetPos.z + (RANDOM.nextDouble() - 0.5) * 0.5
+        );
+
+        // 4. สร้าง Visual
+
+        // 4.1 จุดหักเหที่ 1 (ใต้ block)
+        spawnRefractionPoint(world, refract1Pos);
+
+        // 4.2 จุดหักเหที่ 2 (เหนือศัตรู)
+        spawnRefractionPoint(world, refract2Pos);
+
+        // 4.3 เส้นแสงที่ 1: ฟ้า -> จุดหักเหที่ 1 (ใต้ block)
+        spawnLaserBeam(world, sourcePos, refract1Pos, 0.5);
+
+        // 4.4 เส้นแสงที่ 2: จุดหักเหที่ 1 -> จุดหักเหที่ 2
+        spawnLaserBeam(world, refract1Pos, refract2Pos, 0.4);
+
+        // 4.5 เส้นแสงที่ 3: จุดหักเหที่ 2 -> ศัตรู (หนาแน่นที่สุด)
+        spawnLaserBeam(world, refract2Pos, targetPos, 0.3);
+
+        // 4.6 Impact Effect
+        spawnImpactEffect(world, targetPos);
+
+        // 4.7 Particle พิเศษที่จุดหักเหที่ 1 (ใต้ block)
+        world.sendParticles(
+                net.minecraft.core.particles.ParticleTypes.SPLASH,
+                refract1Pos.x, refract1Pos.y, refract1Pos.z,
+                10,
+                0.3, 0.1, 0.3,
+                0.05
+        );
     }
 
     /**

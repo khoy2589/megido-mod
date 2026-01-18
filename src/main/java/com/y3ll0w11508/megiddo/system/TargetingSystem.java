@@ -24,12 +24,12 @@ public class TargetingSystem {
 
     // Whitelist: Mob ที่ห้ามโจมตี
     private static final List<EntityType<?>> WHITELIST = List.of(
-            EntityType.VILLAGER,
-            EntityType.IRON_GOLEM,
+//            EntityType.VILLAGER,
+//            EntityType.IRON_GOLEM,
             EntityType.CAT,
-            EntityType.WOLF,
-            EntityType.HORSE,
-            EntityType.DONKEY
+            EntityType.WOLF//,
+//            EntityType.HORSE,
+//            EntityType.DONKEY
     );
 
     /**
@@ -108,6 +108,38 @@ public class TargetingSystem {
         return entity.level().canSeeSky(entity.blockPosition());
         // Yarn: getWorld().isSkyVisible(getBlockPos())
         // Mojang: level().canSeeSky(blockPosition())
+    }
+
+    /**
+     * หา Block ที่บังท้องฟ้า (สำหรับสร้างจุดหักเหพิเศษ)
+     *
+     * @return ตำแหน่งใต้ block ที่บัง, หรือ null ถ้ามองเห็นท้องฟ้า
+     */
+    public static net.minecraft.core.BlockPos findBlockingBlock(LivingEntity entity) {
+        if (canSeeSky(entity)) {
+            return null; // มองเห็นท้องฟ้า ไม่มี block บัง
+        }
+
+        // หา block แรกที่บังจากด้านบน
+        net.minecraft.core.BlockPos entityPos = entity.blockPosition();
+        Level level = entity.level();
+
+        // วนหาจากหัวศัตรูขึ้นไปจนถึงความสูง 25 blocks
+        for (int y = entityPos.getY() + 2; y <= entityPos.getY() + 25; y++) {
+            net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(
+                    entityPos.getX(),
+                    y,
+                    entityPos.getZ()
+            );
+
+            // เช็คว่า block นี้ทึบหรือไม่
+            if (!level.getBlockState(checkPos).isAir()) {
+                Megiddo.LOGGER.debug("🧱 Found blocking block at Y={}", y);
+                return checkPos; // ส่งตำแหน่ง block ที่บัง
+            }
+        }
+
+        return null; // ไม่เจอ block บัง (แปลก แต่เผื่อไว้)
     }
 
     /**

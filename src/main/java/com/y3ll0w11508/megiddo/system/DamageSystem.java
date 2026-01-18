@@ -31,7 +31,20 @@ public class DamageSystem {
         // 1. Visual Effect
         Vec3 targetPos = target.position();
         Vec3 attackerPos = attacker.position();
-        VisualSystem.spawnFullMegiddoEffect(world, targetPos, attackerPos);
+
+        // 1. เช็คว่าเป้าหมายอยู่ในร่มหรือไม่
+        net.minecraft.core.BlockPos blockingBlock =
+                com.y3ll0w11508.megiddo.system.TargetingSystem.findBlockingBlock(target);
+
+        if (blockingBlock != null) {
+            // 🏠 เป้าหมายอยู่ในร่ม - ใช้การหักเหแบบซับซ้อน
+            Megiddo.LOGGER.info("🏠 Target is indoors, using advanced refraction");
+            VisualSystem.spawnIndoorMegiddoEffect(world, targetPos, attackerPos, blockingBlock);
+        } else {
+            // ☀️ เป้าหมายอยู่กลางแจ้ง - ใช้การหักเหปกติ
+            Megiddo.LOGGER.info("☀️ Target is outdoors, using normal refraction");
+            VisualSystem.spawnFullMegiddoEffect(world, targetPos, attackerPos, blockingBlock);
+        }
 
         // 2. คำนวณความเสียหาย
         float maxHealth = target.getMaxHealth();
@@ -39,15 +52,19 @@ public class DamageSystem {
 
         // 3. สร้างความเสียหาย
         target.hurtServer(world ,world.damageSources().magic(), maxHealth);
+
+        // 4. เพิ่ม Effect: ติดไฟ (เพราะเป็นความร้อนจากแสง)
         target.setRemainingFireTicks(100); // 5 วินาที (20 ticks = 1 วินาที)
 
-        // 4. เสียง
+        // 5. เล่นเสียง: เสียงพุ่งเลเซอร์
         world.playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.FIRECHARGE_USE,
                 SoundSource.HOSTILE,
                 1.0f,
                 1.5f
         );
+
+        // 6. เล่นเสียง: เสียง Impact
         world.playSound(null, target.getX(), target.getY(), target.getZ(),
                 SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 0.5f, 2.0f);
 
@@ -63,7 +80,6 @@ public class DamageSystem {
      */
     @SuppressWarnings("resource")
     public static void fireMegiddoBatch(Player attacker, Iterable<LivingEntity> targets) {
-        // ✅ แก้ไขตรงนี้
         if (!(attacker.level() instanceof ServerLevel world)) return;
 
         Vec3 playerPos = attacker.position();
