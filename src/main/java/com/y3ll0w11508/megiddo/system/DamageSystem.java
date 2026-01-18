@@ -28,7 +28,6 @@ public class DamageSystem {
 
         Megiddo.LOGGER.info("⚡ Firing Megiddo at {}", target.getType().getDescription().getString());
 
-        // 1. Visual Effect
         Vec3 targetPos = target.position();
         Vec3 attackerPos = attacker.position();
 
@@ -43,30 +42,43 @@ public class DamageSystem {
         } else {
             // ☀️ เป้าหมายอยู่กลางแจ้ง - ใช้การหักเหปกติ
             Megiddo.LOGGER.info("☀️ Target is outdoors, using normal refraction");
-            VisualSystem.spawnFullMegiddoEffect(world, targetPos, attackerPos, blockingBlock);
+            VisualSystem.spawnFullMegiddoEffect(world, targetPos, attackerPos);
         }
 
-        // 2. คำนวณความเสียหาย
+        // 2. คำนวณความเสียหาย = HP สูงสุด (Instant Kill)
         float maxHealth = target.getMaxHealth();
         Megiddo.LOGGER.info("💀 Target HP: {}/{}", target.getHealth(), maxHealth);
 
-        // 3. สร้างความเสียหาย
-        target.hurtServer(world ,world.damageSources().magic(), maxHealth);
+        // 3. สร้างความเสียหายแบบ "Magic" (ทะลุเกราะ)
+        // ✅ ใช้ hurtServer แทน hurt (ไม่ deprecated)
+        target.hurtServer(world, world.damageSources().magic(), maxHealth);
 
         // 4. เพิ่ม Effect: ติดไฟ (เพราะเป็นความร้อนจากแสง)
         target.setRemainingFireTicks(100); // 5 วินาที (20 ticks = 1 วินาที)
 
         // 5. เล่นเสียง: เสียงพุ่งเลเซอร์
-        world.playSound(null, target.getX(), target.getY(), target.getZ(),
-                SoundEvents.FIRECHARGE_USE,
+        world.playSound(
+                null, // ให้ทุกคนในบริเวณได้ยิน
+                target.getX(),
+                target.getY(),
+                target.getZ(),
+                SoundEvents.FIRECHARGE_USE, // เสียงไฟพุ่ง
                 SoundSource.HOSTILE,
-                1.0f,
-                1.5f
+                1.0f, // Volume
+                1.5f  // Pitch (สูงหน่อยให้ฟังดูเหมือนเลเซอร์)
         );
 
         // 6. เล่นเสียง: เสียง Impact
-        world.playSound(null, target.getX(), target.getY(), target.getZ(),
-                SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 0.5f, 2.0f);
+        world.playSound(
+                null,
+                target.getX(),
+                target.getY(),
+                target.getZ(),
+                SoundEvents.GENERIC_EXPLODE,
+                SoundSource.HOSTILE,
+                0.5f, // Volume ต่ำกว่า
+                2.0f  // Pitch สูง
+        );
 
         Megiddo.LOGGER.info("✅ Megiddo fired successfully!");
     }
@@ -78,13 +90,15 @@ public class DamageSystem {
      * @param attacker ผู้โจมตี
      * @param targets รายชื่อเป้าหมาย
      */
-    @SuppressWarnings("resource")
     public static void fireMegiddoBatch(Player attacker, Iterable<LivingEntity> targets) {
+        // เช็คว่าเป็น Server-side
         if (!(attacker.level() instanceof ServerLevel world)) return;
 
+        // 1. สร้าง Grid น้ำครั้งเดียว (ครอบคลุมพื้นที่ทั้งหมด)
         Vec3 playerPos = attacker.position();
         VisualSystem.spawnWaterGrid(world, playerPos, 60.0, 30);
 
+        // 2. ยิงแต่ละเป้าหมาย
         int count = 0;
         for (LivingEntity target : targets) {
             fireMegiddo(attacker, target);

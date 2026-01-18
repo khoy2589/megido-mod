@@ -199,7 +199,7 @@ public class VisualSystem {
      * @param targetPos ตำแหน่งศัตรู
      * @param playerPos ตำแหน่งผู้เล่น (สำหรับคำนวณ Grid)
      */
-    public static void spawnFullMegiddoEffect(ServerLevel world, Vec3 targetPos, Vec3 playerPos, net.minecraft.core.BlockPos blockingBlockPos) {
+    public static void spawnFullMegiddoEffect(ServerLevel world, Vec3 targetPos, Vec3 playerPos) {
         Megiddo.LOGGER.debug("✨ Spawning full Megiddo effect");
 
         // 1. คำนวณจุดกำเนิดแสง (บนฟ้า)
@@ -236,7 +236,6 @@ public class VisualSystem {
 
         // 3.4 Impact Effect
         spawnImpactEffect(world, targetPos);
-
     }
 
     /**
