@@ -32,7 +32,7 @@ public class MegiddoSystem {
      * @param maxRadius รัศมีสูงสุด
      */
     public static void activate(ServerPlayer player, double minRadius, double maxRadius) {
-        ServerLevel world = player.serverLevel();
+        if (!(player.level() instanceof ServerLevel world)) return;
 
         Megiddo.LOGGER.info("🎯 Activating Megiddo for {}", player.getName().getString());
 
@@ -81,7 +81,7 @@ public class MegiddoSystem {
             return;
         }
 
-        ServerLevel world = player.serverLevel();
+        if (!(player.level() instanceof ServerLevel world)) return;
         TargetData data = queue.peek();
 
         // เช็คว่าถึงเวลายิงยัง
@@ -110,7 +110,7 @@ public class MegiddoSystem {
      * @param maxRadius รัศมีสูงสุด
      */
     public static void fireInstant(ServerPlayer player, double minRadius, double maxRadius) {
-        ServerLevel world = player.serverLevel();
+        if (!(player.level() instanceof ServerLevel world)) return;
 
         Megiddo.LOGGER.info("⚡ Firing instant Megiddo");
 

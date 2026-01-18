@@ -80,7 +80,8 @@ public class MegiddoCommand {
             double minRange = DoubleArgumentType.getDouble(context, "minRange");
             double maxRange = DoubleArgumentType.getDouble(context, "maxRange");
 
-            player.sendSystemMessage(Component.literal("§c⚠ Fire system not implemented yet!"));
+//            อันนี้มันล็อค ID ผู้ใช้นิ
+            com.y3ll0w11508.megiddo.system.MegiddoSystem.fireInstant(player, minRange, maxRange);
 
             return 1;
         } else {
