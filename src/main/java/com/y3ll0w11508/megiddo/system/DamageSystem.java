@@ -7,6 +7,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.effect.MobEffectInstance;
 
 /**
  * ระบบสร้างความเสียหายของ Megiddo
@@ -55,6 +57,7 @@ public class DamageSystem {
 
         // 4. เพิ่ม Effect: ติดไฟ (เพราะเป็นความร้อนจากแสง)
         target.setRemainingFireTicks(100); // 5 วินาที (20 ticks = 1 วินาที)
+
 
         // 5. เล่นเสียง: เสียงพุ่งเลเซอร์
         world.playSound(

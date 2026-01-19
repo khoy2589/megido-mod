@@ -86,13 +86,20 @@ public class TargetingSystem {
                 continue;
             }
 
-            // เช็ค 5: มองเห็นท้องฟ้า
+            // เช็ค 5: มองเห็นท้องฟ้า (ไม่ได้ใช้)
+            /*
             if (!canSeeSky(entity)) {
                 Megiddo.LOGGER.debug("⏭️ Skip: {} - no sky", getEntityName(entity));
                 continue;
             }
+             */
+            // แสดงสถานะว่าเป้าหมายอยู่กลางแจ้งหรือในร่ม (เพื่อ debug)
+            String locationStatus = canSeeSky(entity) ? "outdoor ☀️" : "indoor 🏠";
 
-            Megiddo.LOGGER.info("✅ Valid target: {} ({}m)",
+
+
+
+            Megiddo.LOGGER.info("✅ Valid target: {} ({}blocks)",
                     getEntityName(entity), String.format("%.1f", distance));
             validTargets.add(entity);
         }
@@ -106,8 +113,6 @@ public class TargetingSystem {
      */
     private static boolean canSeeSky(LivingEntity entity) {
         return entity.level().canSeeSky(entity.blockPosition());
-        // Yarn: getWorld().isSkyVisible(getBlockPos())
-        // Mojang: level().canSeeSky(blockPosition())
     }
 
     /**
@@ -124,8 +129,8 @@ public class TargetingSystem {
         net.minecraft.core.BlockPos entityPos = entity.blockPosition();
         Level level = entity.level();
 
-        // วนหาจากหัวศัตรูขึ้นไปจนถึงความสูง 25 blocks
-        for (int y = entityPos.getY() + 2; y <= entityPos.getY() + 25; y++) {
+        // วนหาจากหัวศัตรูขึ้นไปจนถึงความสูง 30 blocks
+        for (int y = entityPos.getY() + 2; y <= entityPos.getY() + 30; y++) {
             net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(
                     entityPos.getX(),
                     y,
@@ -133,13 +138,18 @@ public class TargetingSystem {
             );
 
             // เช็คว่า block นี้ทึบหรือไม่
-            if (!level.getBlockState(checkPos).isAir()) {
-                Megiddo.LOGGER.debug("🧱 Found blocking block at Y={}", y);
-                return checkPos; // ส่งตำแหน่ง block ที่บัง
+            net.minecraft.world.level.block.state.BlockState state = level.getBlockState(checkPos);
+
+            if (!state.isAir() && state.canOcclude()) {
+                Megiddo.LOGGER.debug("🧱 Found blocking block at Y={} ({})",
+                        y, state.getBlock().getName().getString());
+                return checkPos;
             }
         }
 
-        return null; // ไม่เจอ block บัง (แปลก แต่เผื่อไว้)
+        Megiddo.LOGGER.debug("⚠️ canSeeSky=false but no solid block found - using fallback");
+        // ถ้าไม่เจอ block ทึบ ให้ใช้ตำแหน่ง 5 blocks เหนือศัตรู
+        return entityPos.above(5);
     }
 
     /**
@@ -147,8 +157,6 @@ public class TargetingSystem {
      */
     private static String getEntityName(LivingEntity entity) {
         return entity.getType().getDescription().getString();
-        // Yarn: getName().getString()
-        // Mojang: getDescription().getString()
     }
 
     /**
@@ -173,9 +181,10 @@ public class TargetingSystem {
                 LivingEntity target = targets.get(i);
                 String name = getEntityName(target);
                 double distance = Math.round(player.distanceTo(target) * 10) / 10.0;
+                String location = canSeeSky(target) ? "§a☀ Outdoor" : "§b🏠 Indoor";
 
                 player.sendSystemMessage(Component.literal(
-                        "§f  " + (i + 1) + ". §7" + name + " §8(§f" + distance + "m§8)"
+                        "§f  " + (i + 1) + ". §7" + name + " §8(§f" + distance + "m§8)" + location
                 ));
             }
         }
