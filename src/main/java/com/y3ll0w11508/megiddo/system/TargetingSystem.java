@@ -130,7 +130,7 @@ public class TargetingSystem {
         Level level = entity.level();
 
         // วนหาจากหัวศัตรูขึ้นไปจนถึงความสูง 30 blocks
-        for (int y = entityPos.getY() + 2; y <= entityPos.getY() + 30; y++) {
+        for (int y = entityPos.getY() + 2; y <= entityPos.getY() + 256; y++) {
             net.minecraft.core.BlockPos checkPos = new net.minecraft.core.BlockPos(
                     entityPos.getX(),
                     y,

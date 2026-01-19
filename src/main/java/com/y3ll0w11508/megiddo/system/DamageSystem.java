@@ -12,9 +12,9 @@ import net.minecraft.world.effect.MobEffectInstance;
 
 /**
  * ระบบสร้างความเสียหายของ Megiddo
- * Instant Kill = Max HP ของเป้าหมาย
+ * Instant Kill = Max HP ของเป้าหมาย + Instant Damage Effect
  *
- * Phase 4.1: Basic Damage + Sound
+ * Phase 4.1: Basic Damage + Sound + Effects
  */
 public class DamageSystem {
 
@@ -55,11 +55,87 @@ public class DamageSystem {
         // ✅ ใช้ hurtServer แทน hurt (ไม่ deprecated)
         target.hurtServer(world, world.damageSources().magic(), maxHealth);
 
-        // 4. เพิ่ม Effect: ติดไฟ (เพราะเป็นความร้อนจากแสง)
-        target.setRemainingFireTicks(100); // 5 วินาที (20 ticks = 1 วินาที)
+        // 4. เพิ่ม Effect: Instant Damage
+        // ⚠️ สำคัญ: ใช้ MobEffects.INSTANT_DAMAGE
+        // Instant Damage ใน Minecraft:
+        // - Level 0 (I) = 3 hearts (6 HP)
+        // - Level 1 (II) = 6 hearts (12 HP)
+        // - Level 255 = ~128 hearts (256 HP)
+        MobEffectInstance instantDamage = new MobEffectInstance(
+                MobEffects.INSTANT_DAMAGE,
+                1,                          // Duration (1 tick เพราะเป็น instant)
+                255,                        // Amplifier
+                false,                      // Ambient (ไม่ใช่ effect จาก beacon/conduit)
+                true,                       // Show particles (เห็น particles สีดำ-แดง)
+                true                        // Show icon (แสดงไอคอนใน UI)
+        );
+
+        // ตัวเลือกเพิ่มเติม: Effect อื่นๆ ที่น่าสนใจ
+
+        // Poison (พิษ - ไม่ทำงานกับ Undead)
+         MobEffectInstance poison = new MobEffectInstance(
+                 MobEffects.POISON,
+                 100,   // 5 วินาที
+                 2,     // Level 3
+                 false,
+                 true,
+                 true
+         );
+        // Slowness (ชะลอความเร็ว)
+         MobEffectInstance slowness = new MobEffectInstance(
+                 MobEffects.SLOWNESS,
+                 60,    // 3 วินาที
+                 4,     // Level 5 (เกือบหยุดนิ่ง)
+                 false,
+                 true,
+                 true
+         );
+        // Weakness (ลดความเสียหายที่ทำได้)
+         MobEffectInstance weakness = new MobEffectInstance(
+                 MobEffects.WEAKNESS,
+                 100,   // 5 วินาที
+                 2,     // Level 3
+                 false,
+                 true,
+                 true
+         );
 
 
-        // 5. เล่นเสียง: เสียงพุ่งเลเซอร์
+
+        // 5. เพิ่ม Wither Effect (ดูดเลือดแบบมืด - ทำงานกับ Undead ด้วย)
+        // Wither แตกต่างจาก Poison ตรงที่:
+        // - Poison ไม่ฆ่า (ลดเหลือ 0.5 hearts)
+        // - Wither ฆ่าได้
+        // - Wither ทำงานกับ Undead (Poison ไม่ทำงาน)
+         MobEffectInstance wither = new MobEffectInstance(
+                 MobEffects.WITHER,
+                 40,    // 2 seconds
+                 1,     // Level 2
+                 false,
+                 true,
+                 true
+         );
+
+
+        // 6. เพิ่ม Glowing Effect (เรืองแสง - เห็นผ่านกำแพง)
+        MobEffectInstance glowing = new MobEffectInstance(
+                MobEffects.GLOWING,
+                60,    // 3 seconds
+                0,     // Level 1
+                false,
+                false, // ไม่แสดง particles
+                true
+        );
+
+        target.addEffect(weakness);
+        target.addEffect(slowness);
+        target.addEffect(poison);
+        target.addEffect(instantDamage);
+        target.addEffect(wither);
+        target.addEffect(glowing);
+
+
+        // 7. เล่นเสียง: เสียงพุ่งเลเซอร์
         world.playSound(
                 null, // ให้ทุกคนในบริเวณได้ยิน
                 target.getX(),
@@ -71,7 +147,7 @@ public class DamageSystem {
                 1.5f  // Pitch (สูงหน่อยให้ฟังดูเหมือนเลเซอร์)
         );
 
-        // 6. เล่นเสียง: เสียง Impact
+        // 8. เล่นเสียง: เสียง Impact
         world.playSound(
                 null,
                 target.getX(),
