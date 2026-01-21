@@ -11,8 +11,13 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
 
+import net.minecraft.core.particles.DustParticleOptions;
+import org.joml.Vector3f;
+
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 /**
  * ระบบค้นหาเป้าหมายสำหรับ Megiddo
@@ -21,6 +26,8 @@ import java.util.List;
  * Mapping: Mojang (Official)
  */
 public class TargetingSystem {
+
+
 
     // Whitelist: Mob ที่ห้ามโจมตี
     private static final List<EntityType<?>> WHITELIST = List.of(

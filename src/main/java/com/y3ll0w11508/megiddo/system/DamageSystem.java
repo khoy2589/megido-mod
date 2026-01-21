@@ -10,6 +10,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import static com.y3ll0w11508.megiddo.system.MegiddoConfig.*;
+
 /**
  * ระบบสร้างความเสียหายของ Megiddo
  * Instant Kill = Max HP ของเป้าหมาย + Instant Damage Effect
@@ -47,13 +49,19 @@ public class DamageSystem {
             VisualSystem.spawnFullMegiddoEffect(world, targetPos, attackerPos);
         }
 
-        // 2. คำนวณความเสียหาย = HP สูงสุด (Instant Kill)
+        // 2,3. คำนวณความเสียหาย = HP สูงสุด (Instant Kill)
         float maxHealth = target.getMaxHealth();
+        float overkillDamage = maxHealth * 5.0f;
         Megiddo.LOGGER.info("💀 Target HP: {}/{}", target.getHealth(), maxHealth);
-
         // 3. สร้างความเสียหายแบบ "Magic" (ทะลุเกราะ)
-        // ✅ ใช้ hurtServer แทน hurt (ไม่ deprecated)
-        target.hurtServer(world, world.damageSources().magic(), maxHealth);
+        target.hurtServer(world, world.damageSources().magic(), overkillDamage);
+
+        // บังคับให้ตาย (สำหรับ Boss Mob ที่มี Healing พิเศษ)
+        if (target.getHealth() > 0) {
+            target.setHealth(0.0f);
+        }
+
+        Megiddo.LOGGER.info("💥 Dealt {} damage (5x overkill)", overkillDamage);
 
         // 4. เพิ่ม Effect: Instant Damage
         // ⚠️ สำคัญ: ใช้ MobEffects.INSTANT_DAMAGE
@@ -63,8 +71,8 @@ public class DamageSystem {
         // - Level 255 = ~128 hearts (256 HP)
         MobEffectInstance instantDamage = new MobEffectInstance(
                 MobEffects.INSTANT_DAMAGE,
-                1,                          // Duration (1 tick เพราะเป็น instant)
-                255,                        // Amplifier
+                INSTANT_DAMAGE_DURATION,                          // Duration (1 tick เพราะเป็น instant)
+                INSTANT_DAMAGE_LEVEL,                        // Amplifier
                 false,                      // Ambient (ไม่ใช่ effect จาก beacon/conduit)
                 true,                       // Show particles (เห็น particles สีดำ-แดง)
                 true                        // Show icon (แสดงไอคอนใน UI)
@@ -75,8 +83,8 @@ public class DamageSystem {
         // Poison (พิษ - ไม่ทำงานกับ Undead)
          MobEffectInstance poison = new MobEffectInstance(
                  MobEffects.POISON,
-                 100,   // 5 วินาที
-                 2,     // Level 3
+                 POISON_DURATION,   // 5 วินาที
+                 POISON_LEVEL,     // Level 3
                  false,
                  true,
                  true
@@ -84,8 +92,8 @@ public class DamageSystem {
         // Slowness (ชะลอความเร็ว)
          MobEffectInstance slowness = new MobEffectInstance(
                  MobEffects.SLOWNESS,
-                 60,    // 3 วินาที
-                 4,     // Level 5 (เกือบหยุดนิ่ง)
+                 SLOWNESS_DURATION,    // 3 วินาที
+                 SLOWNESS_LEVEL,     // Level 5 (เกือบหยุดนิ่ง)
                  false,
                  true,
                  true
@@ -93,8 +101,8 @@ public class DamageSystem {
         // Weakness (ลดความเสียหายที่ทำได้)
          MobEffectInstance weakness = new MobEffectInstance(
                  MobEffects.WEAKNESS,
-                 100,   // 5 วินาที
-                 2,     // Level 3
+                 WEAKNESS_DURATION,   // 5 วินาที
+                 WEAKNESS_LEVEL,     // Level 3
                  false,
                  true,
                  true
@@ -109,8 +117,8 @@ public class DamageSystem {
         // - Wither ทำงานกับ Undead (Poison ไม่ทำงาน)
          MobEffectInstance wither = new MobEffectInstance(
                  MobEffects.WITHER,
-                 40,    // 2 seconds
-                 1,     // Level 2
+                 WITHER_DURATION,    // 2 seconds
+                 WITHER_LEVEL,     // Level 2
                  false,
                  true,
                  true
@@ -120,8 +128,8 @@ public class DamageSystem {
         // 6. เพิ่ม Glowing Effect (เรืองแสง - เห็นผ่านกำแพง)
         MobEffectInstance glowing = new MobEffectInstance(
                 MobEffects.GLOWING,
-                60,    // 3 seconds
-                0,     // Level 1
+                GLOWING_DURATION,    // 3 seconds
+                GLOWING_LEVEL,     // Level 1
                 false,
                 false, // ไม่แสดง particles
                 true
@@ -143,8 +151,8 @@ public class DamageSystem {
                 target.getZ(),
                 SoundEvents.FIRECHARGE_USE, // เสียงไฟพุ่ง
                 SoundSource.HOSTILE,
-                1.0f, // Volume
-                1.5f  // Pitch (สูงหน่อยให้ฟังดูเหมือนเลเซอร์)
+                LASER_VOLUME, // Volume
+                LASER_PITCH  // Pitch (สูงหน่อยให้ฟังดูเหมือนเลเซอร์)
         );
 
         // 8. เล่นเสียง: เสียง Impact
@@ -155,8 +163,8 @@ public class DamageSystem {
                 target.getZ(),
                 SoundEvents.GENERIC_EXPLODE,
                 SoundSource.HOSTILE,
-                0.5f, // Volume ต่ำกว่า
-                2.0f  // Pitch สูง
+                EXPLOSION_VOLUME, // Volume ต่ำกว่า
+                EXPLOSION_PITCH  // Pitch สูง
         );
 
         Megiddo.LOGGER.info("✅ Megiddo fired successfully!");
@@ -172,6 +180,7 @@ public class DamageSystem {
     public static void fireMegiddoBatch(Player attacker, Iterable<LivingEntity> targets) {
         // เช็คว่าเป็น Server-side
         if (!(attacker.level() instanceof ServerLevel world)) return;
+
 
         // 1. สร้าง Grid น้ำครั้งเดียว (ครอบคลุมพื้นที่ทั้งหมด)
         Vec3 playerPos = attacker.position();

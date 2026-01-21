@@ -11,7 +11,7 @@ import java.util.Random;
  * ระบบ Visual Effects สำหรับ Megiddo
  *
  * Concept:
- * 1. Grid น้ำลอยฟ้า (25 blocks เหนือพื้น)
+ * 1. Grid น้ำลอยฟ้า
  * 2. จุดหักเหแสง (Water Droplet Lens) เหนือศัตรู 3-5 blocks
  * 3. เลเซอร์ 2 เส้น: ฟ้า -> จุดหักเห -> ศัตรู
  *
@@ -22,7 +22,8 @@ public class VisualSystem {
     private static final Random RANDOM = new Random();
 
     // ความสูงของ Grid น้ำเหนือพื้น
-    private static final double GRID_HEIGHT = 25.0;
+    // ยังไม่มี visual lens น้ำรวมแสงหนือหยดน้ำชันบนสุดแต่ละอัน
+    private static final double GRID_HEIGHT = 50.0;
 
     // ความสูงของจุดหักเหเหนือเป้าหมาย (3-5 blocks สุ่ม)
     private static final double MIN_REFRACT_HEIGHT = 3.0;
@@ -118,10 +119,12 @@ public class VisualSystem {
      * @param end จุดสิ้นสุด
      * @param particleDensity ระยะห่างระหว่าง Particle (ยิ่งต่ำยิ่งหนาแน่น)
      */
+
     public static void spawnLaserBeam(ServerLevel world, Vec3 start, Vec3 end,
                                       double particleDensity) {
         double distance = start.distanceTo(end);
         Vec3 direction = end.subtract(start).normalize();
+
 
         Megiddo.LOGGER.debug("⚡ Spawning laser beam ({}m)", String.format("%.1f", distance));
 
@@ -150,6 +153,8 @@ public class VisualSystem {
             }
         }
     }
+
+
 
     /**
      * สร้าง Impact Effect ตรงจุดกระทบ

@@ -15,8 +15,8 @@ import java.util.Random;
  *
  * Features:
  * - ทะลุ Block ได้สูงสุด 10 ชั้น
- * - สร้างจุดหักเหทุกๆ 5-15 blocks
- * - หา Air Pocket ในพื้นที่ปิด
+ * - ถ้าเกิน 10 ชั้นไม่เจออากาศ → Laser หาย
+ * - ถ้าเจออากาศ → สร้างจุดหักเห แล้วยิงต่อได้อีก 1 เส้น
  */
 public class MegiddoPathfinder {
 
@@ -68,7 +68,8 @@ public class MegiddoPathfinder {
 
             if (nextRefractPoint == null) {
                 // หาเส้นทางไม่ได้ (Block ทึบเกินไป)
-                Megiddo.LOGGER.warn("⚠️ Cannot find path to target - too many solid blocks");
+                Megiddo.LOGGER.warn("⚠️ Laser blocked: Cannot penetrate more than {} solid blocks",
+                        MAX_SOLID_BLOCKS);
                 return null;
             }
 
@@ -93,7 +94,6 @@ public class MegiddoPathfinder {
         // คำนวณทิศทางไปยังเป้าหมาย
         Vec3 direction = targetPos.subtract(currentPos).normalize();
 
-        // สุ่มระยะห่าง (5-15 blocks)
         double stepDistance = MIN_REFRACT_DISTANCE +
                 RANDOM.nextDouble() * (MAX_REFRACT_DISTANCE - MIN_REFRACT_DISTANCE);
 
